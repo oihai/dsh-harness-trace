@@ -36,7 +36,7 @@
 - **侧边栏面板入口** — 审阅页：左侧会话列表，右侧按轮次/步骤展开的时间线；可切换查看 Markdown 源码、手动写入、自动刷新。
 - <img src="https://github.com/oihai/dsh-harness-trace/blob/main/images/34fdgag.png" title="" alt="" width="190">
 - **设置 → Harness 交互追踪** — 全部配置项。
-- <img src="https://github.com/oihai/dsh-harness-trace/blob/main/images/7856io.png" title="" alt="" width="104">
+- <img src="https://github.com/oihai/dsh-harness-trace/blob/main/images/gdhkjbw54.png" title="" alt="" width="104">
 - **会话内「追踪」标签** — 只看当前会话。![](https://github.com/oihai/dsh-harness-trace/blob/main/images/nvkm14.png)
 - **会话头部快捷按钮** — 显示追踪状态，可一键暂停/开始与写入。
 
