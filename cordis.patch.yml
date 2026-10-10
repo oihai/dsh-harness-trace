@@ -1,0 +1,6 @@
+# Bundle patch layer: one Host row loads this package's main entry (index.js)
+# as a plain Cordis plugin; the `dsh.client` declaration in package.json makes
+# the Web app load ./client.js as the browser half.
+- insert:
+    - id: dsh-harness-trace
+      name: '@local/dsh-harness-trace'

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Harness 交互追踪",
+    "description": "持续追踪 Harness 调用 LLM 的完整提示词、工具调用、文件读写与联网行为，按轮次与步骤汇总为 Markdown，并提供 DSH 内审阅页与可调配置。"
+  }
+}

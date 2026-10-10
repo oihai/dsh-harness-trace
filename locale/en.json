@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Harness Trace",
+    "description": "Continuously traces the complete prompts, tool calls, file access and web activity of every Harness LLM call, summarized per turn and step into Markdown, with an in-app review page and configurable options."
+  }
+}
