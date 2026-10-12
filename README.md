@@ -1,5 +1,8 @@
 # Harness 交互追踪（dsh-harness-trace）
 
+[![npm version](https://img.shields.io/npm/v/@oihai/dsh-harness-trace.svg)](https://www.npmjs.com/package/@oihai/dsh-harness-trace)
+[![license](https://img.shields.io/npm/l/@oihai/dsh-harness-trace.svg)](https://github.com/oihai/dsh-harness-trace/blob/main/LICENSE)
+
 版本：1.0
 
 持续追踪本地 DeepSeek Harness 调用 LLM 的全过程，供开发者研究 harness 与模型的真实交互。
