@@ -1,17 +1,16 @@
-# 发布到 npmjs —— Trusted Publishing（OIDC），无需长期 token。
+# 发布到 npmjs。
 #
-# 工作原理：GitHub 用 OIDC 给本 job 签发一个几分钟有效的临时身份令牌，
-# npm 验证后放行。凭据不落盘、不进 secret、无法被窃取后长期滥用。
+# 当前处于「首次发布（bootstrap）」模式：npm 不允许用 OIDC 完成包的第一次发布，
+# 所以这一步用一次性 NPM_TOKEN，并把 npm 账号身份打印出来便于排错。
 #
-# 前置条件：包必须在 npmjs.com 上把本仓库登记为 Trusted Publisher
-# （包页面 → Settings → Trusted Publisher → 填github 仓库与 workflow 名）。
-#
-# 例外：**包的首次发布不能用 OIDC**（npm 的 bootstrapping 限制），
-# 第一次仍需一次性 NPM_TOKEN secret，之后可从仓库删除。
+# 首次发布成功后：
+#   1. 去 npmjs.com 包页面 → Settings → Trusted Publisher，登记本仓库与工作流名；
+#   2. 删除仓库里的 NPM_TOKEN secret；
+#   3. 把本文件改回 OIDC 版（恢复 id-token: write，去掉 publish 的 env）。
 #
 # 触发方式：
-#   1. 打 tag：推送 v* 形式的 tag（例如 v1.0.1）自动触发；
-#   2. 手动：在 Actions 页点 “Run workflow”。
+#   1. 手动：在 Actions 页点 “Run workflow”（请选 main 分支，不要选旧 tag）；
+#   2. 打 tag：推送 v* 形式的 tag（例如 v1.0.1）。
 name: Publish to npm
 
 on:
@@ -21,7 +20,10 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # OIDC：向 GitHub 换取发布身份，无此权限则无法免token 发布
+  # 注意：bootstrap 阶段特意不给 id-token: write。
+  # 该权限会让 npm 检测到 ACTIONS_ID_TOKEN_REQUEST_URL 而改走 OIDC 交换，
+  # 但包尚未在 npm 登记 Trusted Publisher，交换必然失败。
+  # 首次发布成功、登记完 Trusted Publisher 后，再把它加回来。
 
 jobs:
   publish:
@@ -29,7 +31,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Trusted Publishing 要求 npm >= 11.5.1，Node 24 自带 npm 11.x。
       - uses: actions/setup-node@v4
         with:
           node-version: '24.x'
@@ -51,24 +52,26 @@ jobs:
             echo "手动触发（$GITHUB_EVENT_NAME），跳过 tag 校验，按 package.json 版本 $PKG_VERSION 发布"
           fi
 
-      # 确认 npm 满足 Trusted Publishing 的最低版本要求。
-      - name: Check npm version
+      # 排错用：把身份与目标打出来。只打印账号名与 token 长度，绝不打印 token 内容。
+      - name: Diagnose publish identity
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          NPM_MAJOR="$(npm --version | cut -d. -f1)"
-          NPM_MINOR="$(npm --version | cut -d. -f2)"
-          NPM_PATCH="$(npm --version | cut -d. -f3)"
-          if [ "$NPM_MAJOR" -lt 11 ] || { [ "$NPM_MAJOR" -eq 11 ] && [ "$NPM_MINOR" -lt 5 ]; } || \
-             { [ "$NPM_MAJOR" -eq 11 ] && [ "$NPM_MINOR" -eq 5 ] && [ "$NPM_PATCH" -lt 1 ]; }; then
-            echo "npm $(npm --version) 过低，Trusted Publishing 需 >= 11.5.1" >&2
-            exit 1
+          echo "registry       : $(npm config get registry)"
+          echo "package name   : $(node -p "require('./package.json').name")"
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            echo "NODE_AUTH_TOKEN: 已注入（长度 ${#NODE_AUTH_TOKEN}）"
+          else
+            echo "NODE_AUTH_TOKEN: 未注入 —— 仓库缺少 NPM_TOKEN secret，或名字拼写不符"
           fi
-          echo "npm $(npm --version) 满足要求"
+          echo "--- npm whoami（token 属于哪个 npm 账号）"
+          npm whoami || echo "whoami 失败 —— token 无效、已过期，或类型不被接受"
 
       # npm pack --dry-run：把将要上传的文件清单打出来，确认产物里没有漏掉的资源。
       - name: Inspect package contents
         run: npm pack --dry-run
 
-      # 不设 NODE_AUTH_TOKEN —— 这是 OIDC 免token 发布的关键。
-      # 若需回退到传统方式，改为在 env 里加 NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}。
       - name: Publish
         run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
