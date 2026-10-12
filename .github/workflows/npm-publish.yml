@@ -35,14 +35,20 @@ jobs:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org/'
 
-      # tag 与 package.json 版本必须一致，否则 npm 会拒收 v1.0.0 这类不一致的版本号。
+      # tag 触发时，tag 名（去 v 前缀）必须等于 package.json 版本；
+      # workflow_dispatch 手动触发时 GITHUB_REF_NAME 是分支名，此时无 tag 可比，跳过校验。
       - name: Check tag matches package version
         run: |
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
           PKG_VERSION="$(node -p "require('./package.json').version")"
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "tag $GITHUB_REF_NAME 与 package.json 版本 $PKG_VERSION 不一致" >&2
-            exit 1
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            TAG_VERSION="${GITHUB_REF_NAME#v}"
+            if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+              echo "tag $GITHUB_REF_NAME 与 package.json 版本 $PKG_VERSION 不一致" >&2
+              exit 1
+            fi
+            echo "tag $GITHUB_REF_NAME 与版本 $PKG_VERSION 一致"
+          else
+            echo "手动触发（$GITHUB_EVENT_NAME），跳过 tag 校验，按 package.json 版本 $PKG_VERSION 发布"
           fi
 
       # 确认 npm 满足 Trusted Publishing 的最低版本要求。
