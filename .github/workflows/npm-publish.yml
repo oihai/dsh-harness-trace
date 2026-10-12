@@ -1,11 +1,17 @@
-# 发布到 npmjs。
+# 发布到 npmjs —— Trusted Publishing（OIDC），无需长期 token。
 #
-# 触发方式二选一：
-#   1. 手动：在 Actions 页点 “Run workflow”；
-#   2. 打 tag：推送 v* 形式的 tag（例如 v1.0.0）自动触发。
+# 工作原理：GitHub 用 OIDC 给本 job 签发一个几分钟有效的临时身份令牌，
+# npm 验证后放行。凭据不落盘、不进 secret、无法被窃取后长期滥用。
 #
-# 需要仓库 Secret：NPM_TOKEN（npmjs.com → Access Tokens → Automation token）。
-# 认证走 registry-url 写入的 .npmrc，token 本身不出现在日志里。
+# 前置条件：包必须在 npmjs.com 上把本仓库登记为 Trusted Publisher
+# （包页面 → Settings → Trusted Publisher → 填github 仓库与 workflow 名）。
+#
+# 例外：**包的首次发布不能用 OIDC**（npm 的 bootstrapping 限制），
+# 第一次仍需一次性 NPM_TOKEN secret，之后可从仓库删除。
+#
+# 触发方式：
+#   1. 打 tag：推送 v* 形式的 tag（例如 v1.0.1）自动触发；
+#   2. 手动：在 Actions 页点 “Run workflow”。
 name: Publish to npm
 
 on:
@@ -15,17 +21,18 @@ on:
 
 permissions:
   contents: read
+  id-token: write   # OIDC：向 GitHub 换取发布身份，无此权限则无法免token 发布
 
 jobs:
   publish:
-    # 同版本号不可重复发布；并发时后一个直接跳过，避免把已发布版本顶掉。
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      # Trusted Publishing 要求 npm >= 11.5.1，Node 24 自带 npm 11.x。
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '24.x'
           registry-url: 'https://registry.npmjs.org/'
 
       # tag 与 package.json 版本必须一致，否则 npm 会拒收 v1.0.0 这类不一致的版本号。
@@ -38,11 +45,24 @@ jobs:
             exit 1
           fi
 
+      # 确认 npm 满足 Trusted Publishing 的最低版本要求。
+      - name: Check npm version
+        run: |
+          NPM_MAJOR="$(npm --version | cut -d. -f1)"
+          NPM_MINOR="$(npm --version | cut -d. -f2)"
+          NPM_PATCH="$(npm --version | cut -d. -f3)"
+          if [ "$NPM_MAJOR" -lt 11 ] || { [ "$NPM_MAJOR" -eq 11 ] && [ "$NPM_MINOR" -lt 5 ]; } || \
+             { [ "$NPM_MAJOR" -eq 11 ] && [ "$NPM_MINOR" -eq 5 ] && [ "$NPM_PATCH" -lt 1 ]; }; then
+            echo "npm $(npm --version) 过低，Trusted Publishing 需 >= 11.5.1" >&2
+            exit 1
+          fi
+          echo "npm $(npm --version) 满足要求"
+
       # npm pack --dry-run：把将要上传的文件清单打出来，确认产物里没有漏掉的资源。
       - name: Inspect package contents
         run: npm pack --dry-run
 
+      # 不设 NODE_AUTH_TOKEN —— 这是 OIDC 免token 发布的关键。
+      # 若需回退到传统方式，改为在 env 里加 NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}。
       - name: Publish
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
