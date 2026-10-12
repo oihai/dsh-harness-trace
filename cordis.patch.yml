@@ -3,4 +3,4 @@
 # the Web app load ./client.js as the browser half.
 - insert:
     - id: dsh-harness-trace
-      name: '@local/dsh-harness-trace'
+      name: '@oihai/dsh-harness-trace'

@@ -13,7 +13,7 @@
  */
 
 window.__ModuleLoader__.load({
-  id: '@local/dsh-harness-trace',
+  id: '@oihai/dsh-harness-trace',
   factory(require) {
     const React = require('react')
     const h = React.createElement
@@ -1752,7 +1752,7 @@ select.lt-in{cursor:pointer}
     }
 
     return {
-      name: '@local/dsh-harness-trace',
+      name: '@oihai/dsh-harness-trace',
       inject: ['slots', 'locale'],
       apply(ctx) {
         ctx.effect(() => ctx.locale.register(NS, { zh: DICT_ZH, en: DICT_EN }), 'dsh-harness-trace: dictionaries')

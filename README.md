@@ -20,7 +20,7 @@
 
 数据按「**轮次 → 步骤**」依时间顺序拼接成一条时间线，并附会话概览、文件访问汇总、联网活动汇总、技能加载汇总。
 
-以下为标签栏内看板示例图![](https://github.com/oihai/dsh-harness-trace/blob/main/images/afgnb.png)
+以下为标签栏内看板示例图![](https://raw.githubusercontent.com/oihai/dsh-harness-trace/main/images/afgnb.png)
 
 ## 产出与命名
 
@@ -34,10 +34,10 @@
 安装后界面入口：
 
 - **侧边栏面板入口** — 审阅页：左侧会话列表，右侧按轮次/步骤展开的时间线；可切换查看 Markdown 源码、手动写入、自动刷新。
-- <img src="https://github.com/oihai/dsh-harness-trace/blob/main/images/34fdgag.png" title="" alt="" width="190">
+- <img src="https://raw.githubusercontent.com/oihai/dsh-harness-trace/main/images/34fdgag.png" title="" alt="" width="190">
 - **设置 → Harness 交互追踪** — 全部配置项。
-- <img src="https://github.com/oihai/dsh-harness-trace/blob/main/images/gdhkjbw54.png" title="" alt="" width="104">
-- **会话内「追踪」标签** — 只看当前会话。![](https://github.com/oihai/dsh-harness-trace/blob/main/images/nvkm14.png)
+- <img src="https://raw.githubusercontent.com/oihai/dsh-harness-trace/main/images/gdhkjbw54.png" title="" alt="" width="104">
+- **会话内「追踪」标签** — 只看当前会话。![](https://raw.githubusercontent.com/oihai/dsh-harness-trace/main/images/nvkm14.png)
 - **会话头部快捷按钮** — 显示追踪状态，可一键暂停/开始与写入。
 
 四个入口都可单独开关，并可各自调整位置序号。
@@ -60,7 +60,7 @@ UI 改动即时生效；也可直接编辑配置文件（路径见审阅页底�
 
 - **入口位置**：四个入口的开关与序号。
   
-  <img src="https://github.com/oihai/dsh-harness-trace/blob/main/images/7856io.png" title="" alt="" width="266">
+  <img src="https://raw.githubusercontent.com/oihai/dsh-harness-trace/main/images/7856io.png" title="" alt="" width="266">
   
   ## 与浏览器的通信
 

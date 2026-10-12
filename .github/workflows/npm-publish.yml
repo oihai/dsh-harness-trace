@@ -1,0 +1,48 @@
+# 发布到 npmjs。
+#
+# 触发方式二选一：
+#   1. 手动：在 Actions 页点 “Run workflow”；
+#   2. 打 tag：推送 v* 形式的 tag（例如 v1.0.0）自动触发。
+#
+# 需要仓库 Secret：NPM_TOKEN（npmjs.com → Access Tokens → Automation token）。
+# 认证走 registry-url 写入的 .npmrc，token 本身不出现在日志里。
+name: Publish to npm
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    # 同版本号不可重复发布；并发时后一个直接跳过，避免把已发布版本顶掉。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org/'
+
+      # tag 与 package.json 版本必须一致，否则 npm 会拒收 v1.0.0 这类不一致的版本号。
+      - name: Check tag matches package version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "tag $GITHUB_REF_NAME 与 package.json 版本 $PKG_VERSION 不一致" >&2
+            exit 1
+          fi
+
+      # npm pack --dry-run：把将要上传的文件清单打出来，确认产物里没有漏掉的资源。
+      - name: Inspect package contents
+        run: npm pack --dry-run
+
+      - name: Publish
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

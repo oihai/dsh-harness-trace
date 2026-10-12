@@ -17,8 +17,18 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "images/*"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oihai/dsh-harness-trace.git"
+  },
+  "homepage": "https://github.com/oihai/dsh-harness-trace#readme",
+  "bugs": {
+    "url": "https://github.com/oihai/dsh-harness-trace/issues"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
